@@ -54,10 +54,20 @@ Automatically generated visualization:
 
 ![Vocabulary Graph](vocab_graph.png)
 
-### 2️⃣ Frequency Statistics  
-Automatically generated JSON file (`usage_stats.json`) containing vocabulary term usage counts.
+## 📊 Word Usage Statistics (Auto-Generated)
 
----
+The following table represents how frequently vocabulary terms were used in the research report:
+
+| Term | Count |
+|------|-------|
+| generative ai | 12 |
+| model | 8 |
+| inference | 5 |
+| prompt | 4 |
+| embeddings | 3 |
+| vector database | 2 |
+| diffusion model | 1 |
+
 
 ## 🚀 Run Locally
 
