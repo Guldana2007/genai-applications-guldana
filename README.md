@@ -56,17 +56,50 @@ Automatically generated visualization:
 
 ## 📊 Word Usage Statistics (Auto-Generated)
 
-The following table represents how frequently vocabulary terms were used in the research report:
+The following table shows how frequently each vocabulary term appeared in the research report.
 
 | Term | Count |
 |------|-------|
-| generative ai | 12 |
-| model | 8 |
-| inference | 5 |
-| prompt | 4 |
-| embeddings | 3 |
-| vector database | 2 |
-| diffusion model | 1 |
+| generative ai | 3 |
+| generate | 2 |
+| context window | 1 |
+| semantic search | 1 |
+| alignment | 1 |
+| latency | 1 |
+| personalization | 1 |
+| summarization | 1 |
+| classification | 1 |
+| large language model | 0 |
+| foundation model | 0 |
+| embeddings | 0 |
+| tokenization | 0 |
+| prompt engineering | 0 |
+| chain of thought | 0 |
+| few-shot learning | 0 |
+| zero-shot learning | 0 |
+| hallucination | 0 |
+| rag (retrieval-augmented generation) | 0 |
+| vector database | 0 |
+| diffusion model | 0 |
+| fine-tuning | 0 |
+| inference | 0 |
+| gpu acceleration | 0 |
+| multimodal model | 0 |
+| model drift | 0 |
+| knowledge base | 0 |
+| parsing | 0 |
+| grounding | 0 |
+| api endpoint | 0 |
+| safety guardrails | 0 |
+| function calling | 0 |
+| orchestration | 0 |
+| optimization | 0 |
+| evaluate | 0 |
+| monitor | 0 |
+| retrieve | 0 |
+| transform | 0 |
+| validate | 0 |
+
 
 
 ## 🚀 Run Locally
