@@ -1,4 +1,7 @@
 # 📘 Generative AI Applications — Research Project  
+![workflow](https://github.com/Guldana2007/genai-applications-guldana/actions/workflows/generate_graph.yml/badge.svg)
+
+
 ### *Use Cases, Vocabulary Analytics, Automated Graph Generation*
 
 This project presents a complete analytical workflow around Generative AI, including a curated vocabulary, usage frequency analysis, and an automatically generated relationship graph using GitHub Actions. It demonstrates research skills, Python text processing, visualization, and automation practices.
