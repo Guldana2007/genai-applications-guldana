@@ -1,124 +1,111 @@
 📘 Generative AI Applications — Research Project
 
-Use Cases, Vocabulary Analytics, Automated Graph Generation, and Codemie AI Assistant Integration
+A research project exploring Generative AI applications, vocabulary analytics, automated graph generation, and integration with the EPAM Codemie AI Assistant.
 
-This project presents a complete analytical workflow around Generative AI, including a curated vocabulary, usage frequency analysis, automated graph generation using GitHub Actions, and an integrated EPAM Codemie AI Assistant that analyzes and automates work with this repository.
+This repository demonstrates practical skills in AI research, Python automation, visualization, CI/CD, and AI-powered documentation.
 
 🤖 Codemie AI Assistant Integration
 GenAI Repository Automator (EPAM Codemie)
 
-A custom-built AI assistant created specifically for this repository to support automation, documentation, and code analysis.
+A custom AI assistant created specifically for this repository to support automation, documentation, analytics, and intelligent insights.
 
-🔗 Assistant Overview
+🔍 Assistant Overview
 
 Name: GenAI Repository Automator
+
 Platform: EPAM Codemie
+
 Created by: Guldana Kassym-Ashim
-Purpose: Automates repository analysis, documentation, and improvement workflows.
-Status: Active and connected to this GitHub repository.
 
-🧠 Assistant Capabilities
+Purpose: Analyze, document, and enhance this repository using AI tools
 
-The assistant is able to:
+Status: Active and fully connected to GitHub
 
-analyze repository structure and files,
+🧠 Capabilities
 
-explain Python code and workflows,
+The assistant can:
 
-generate documentation (README, module descriptions, summaries),
+Analyze repository structure
 
-identify potential issues and improvement areas,
+Explain Python code and workflows
 
-support research writing and technical explanations,
+Generate documentation (README, summaries, descriptions)
 
-provide recommendations on automation and CI/CD,
+Suggest improvements and identify issues
 
-use the repository as a fully indexed datasource.
+Assist with research writing
+
+Provide development recommendations
+
+Use indexed repository data as a knowledge base
 
 📦 Connected Datasource
 
-A dedicated datasource named genai-repo is linked to the assistant.
+A linked datasource (genai-repo) allows the assistant to access and process the entire GitHub repository.
 
-Datasource configuration:
-
-Type: Git
+Datasource details:
 
 Repository: https://github.com/Guldana2007/genai-applications-guldana
 
 Branch: main
 
-Indexing: Whole codebase
+Scope: Whole codebase
 
-Embedding Model: Text Embedding Ada
+Embeddings: Text Embedding Ada
 
-Status: COMPLETED (fully indexed)
-
-Screenshots are stored in:
-📁 /docs/screenshots/
+Status: Completed (fully indexed)
 
 📂 Project Structure
-✔ research.md
+research.md
 
-A detailed research report describing modern applications of Generative AI: business value, real-world examples, technical challenges, and technological impact.
+A detailed research analysis of modern Generative AI use cases, challenges, and industry opportunities.
 
-✔ vocabulary.md
+vocabulary.md
 
-A curated vocabulary of 35+ essential Generative AI terms and verbs used in the research.
+A curated vocabulary list of 35+ key AI terms used throughout the research.
 
-✔ stats.py
+stats.py
 
 A Python script that:
 
-extracts vocabulary terms from markdown,
+extracts vocabulary terms
 
-analyzes frequency of usage in research.md,
+analyzes their usage frequency
 
-generates a structured JSON (usage_stats.json),
+generates usage_stats.json
 
-creates a visual vocabulary relationship graph (vocab_graph.png).
+produces vocab_graph.png (relationship graph)
 
-🤖 GitHub Actions Automation
+🔄 GitHub Actions Automation
 
 Workflow file: .github/workflows/generate_graph.yml
 
-This workflow executes automatically:
+Automatically runs when:
 
-on every push to the main branch,
+pushing to the main branch
 
-or manually using Run workflow in GitHub Actions.
+manually via Run workflow
 
-Workflow Steps:
+What it does:
 
-Check out the repository
+Sets up Python
 
-Set up Python
+Installs dependencies
 
-Install dependencies
+Executes stats.py
 
-Run stats.py
-
-Commit and update:
+Saves:
 
 usage_stats.json
 
 vocab_graph.png
 
-Benefits:
-
-Continuous Integration (CI)
-
-Automated analytics
-
-Reproducible execution
-
-Zero manual steps required
+Ensuring analytics always stay up to date.
 
 📊 Generated Outputs
-1️⃣ Vocabulary Relationship Graph
+📌 Vocabulary Relationship Graph
 
-Automatically created visualization:
-
-2️⃣ Word Usage Statistics (Auto-Generated)
+📌 Word Usage Statistics (Auto-Generated)
 Term	Count
 generative ai	3
 generate	2
@@ -138,7 +125,7 @@ chain of thought	0
 few-shot learning	0
 zero-shot learning	0
 hallucination	0
-rag (retrieval-augmented generation)	0
+rag	0
 vector database	0
 diffusion model	0
 fine-tuning	0
@@ -163,41 +150,30 @@ validate	0
 pip install -r requirements.txt
 python stats.py
 
-📎 Additional Documentation
-✔ /docs/assistant-overview.md
+📁 Additional Documentation
 
-Overview of Codemie assistant configuration and capabilities.
+Located in the docs/ folder:
 
-✔ /docs/datasource.md
+assistant-overview.md — description of the Codemie assistant
 
-Detailed datasource configuration with indexing information.
+datasource.md — indexing and configuration details
 
-✔ /docs/screenshots/
+screenshots/ — UI screenshots (assistant, datasource, workflows)
 
-Includes images of:
+🎯 Summary
 
-assistant interface,
+This repository demonstrates:
 
-datasource status (COMPLETED),
+Generative AI research
 
-workflow settings,
+Vocabulary engineering
 
-project structure.
+Automated graph creation
 
-🎉 Summary
+Python analytics
 
-This project demonstrates a complete integration of:
+GitHub Actions CI/CD
 
-Generative AI research,
+AI assistant integration (Codemie)
 
-vocabulary engineering,
-
-Python-based text analysis,
-
-automated visualizations,
-
-GitHub Actions automation,
-
-Codemie AI-assisted documentation and code intelligence.
-
-It showcases practical, real-world skills in AI engineering, automation, and repository management.
+Providing a real-world example of combining development, research, and AI automation.
