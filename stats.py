@@ -10,11 +10,15 @@ This script analyzes the research text and vocabulary list to automatically:
    relationships between the central theme ("Generative AI Applications")
    and all vocabulary terms that appear at least once.
 
-The visual style of the graph is enhanced:
-- Top-3 most frequent terms are highlighted with a special color and larger size
-- All nodes use a force-directed (spring) layout
-- Frequency values are displayed near each node
-- Dark background and bright colors provide a modern “data science” look
+Visual style (updated, neon radial style):
+
+- Dark, almost black background, cyan / magenta neon palette
+- Central "AI" node in the middle, large and bright
+- All terms placed on a circle around the center (radial layout)
+- Top-3 most frequent terms: bigger, warm neon color
+- Soft glow effect around nodes (drawn as transparent halos)
+- Edge width encodes frequency, edges use bright cyan
+- Frequency number is shown next to every term node
 
 This script is intended to be executed both locally and via GitHub Actions.
 It was designed with the help of an AI assistant (GenAI Repository Automator).
@@ -27,9 +31,10 @@ from typing import List, Dict
 
 import networkx as nx
 import matplotlib
-matplotlib.use("Agg")  # Use non-interactive backend for CI / GitHub Actions
+
+# Non-interactive backend for CI / GitHub Actions
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib import cm
 
 
 # Paths to all relevant project files
@@ -42,12 +47,6 @@ OUTPUT_PNG = Path("vocab_graph.png")
 def load_text(path: Path) -> str:
     """
     Read the content of a text file and return it as a string.
-
-    Parameters:
-        path (Path): Path to the file that should be loaded.
-
-    Returns:
-        str: Content of the file.
     """
     return path.read_text(encoding="utf-8")
 
@@ -60,19 +59,12 @@ def extract_terms(vocab_md: str) -> List[str]:
     and converts terms to lowercase for consistent matching.
 
     Expected format for each term line: '## 1. Term'.
-
-    Parameters:
-        vocab_md (str): Content of vocabulary.md as a string.
-
-    Returns:
-        list[str]: A list of extracted vocabulary terms in lowercase.
     """
     terms: List[str] = []
     for line in vocab_md.splitlines():
         line = line.strip()
-        # Vocabulary terms follow the format '## 1. Term'
         if line.startswith("##"):
-            # Remove numbering before the first dot
+            # Remove everything before the first dot ("1. Term" -> "Term")
             term = line.split(".", 1)[-1].strip()
             if term:
                 terms.append(term.lower())
@@ -83,15 +75,7 @@ def count_frequencies(text: str, terms: List[str]) -> Dict[str, int]:
     """
     Count how many times each vocabulary term appears in the research text.
 
-    Matching is case-insensitive, and we use a regex with word boundaries
-    to reduce the chance of partial matches inside other words.
-
-    Parameters:
-        text (str): The research document.
-        terms (list[str]): Vocabulary terms to search for.
-
-    Returns:
-        dict[str, int]: A dictionary mapping each term to its frequency.
+    Matching is case-insensitive and uses word boundaries where possible.
     """
     freq: Dict[str, int] = {}
     text_lower = text.lower()
@@ -101,8 +85,6 @@ def count_frequencies(text: str, terms: List[str]) -> Dict[str, int]:
             freq[term] = 0
             continue
 
-        # Regex for approximate whole-term match.
-        # For multi-word terms we still wrap in word boundaries.
         pattern = r"\b" + re.escape(term) + r"\b"
         matches = re.findall(pattern, text_lower)
         freq[term] = len(matches)
@@ -119,109 +101,141 @@ def _get_top_terms(freq: Dict[str, int], top_k: int = 3) -> List[str]:
     if not non_zero_terms:
         return []
 
-    # Sort by frequency desc, then term asc
     non_zero_terms.sort(key=lambda x: (-x[1], x[0]))
     return [t for t, _ in non_zero_terms[:top_k]]
 
 
 def build_graph(freq: Dict[str, int]) -> None:
     """
-    Build and save a relationship graph using NetworkX and Matplotlib.
+    Build and save a relationship graph (neon radial style).
 
     Nodes:
-        - A central node: "Generative AI Applications"
-        - All vocabulary terms with a frequency > 0
-          (their node size and color reflect their frequency)
+        - Center node: "AI" / "Generative AI Applications"
+        - All vocabulary terms with frequency > 0
 
-    Edges:
-        - Each term node is connected to the central node.
+    Layout:
+        - Center node at (0, 0)
+        - All terms arranged on a circle around the center
 
     Styling:
-        - Dark background for a modern "data science" look
-        - Top-3 most frequent terms are highlighted
-        - Node sizes scale with term frequency
-        - Frequency labels are drawn next to each node
-
-    Output:
-        vocab_graph.png (saved in project root)
+        - Dark background
+        - Cyan / magenta neon colours
+        - Soft "glow" around nodes (drawn as transparent halos)
+        - Top-3 terms highlighted
+        - Edge width encodes frequency
     """
-    # Filter out terms that were never used
     used_terms = {term: count for term, count in freq.items() if count > 0}
 
     # If no terms were used in the research, generate a minimal placeholder graph
     if not used_terms:
-        plt.figure(figsize=(8, 6))
+        plt.figure(figsize=(10, 7))
+        ax = plt.gca()
+        ax.set_facecolor("#050816")
         plt.text(
             0.5,
             0.5,
             "No vocabulary terms found in research.md",
             ha="center",
             va="center",
-            fontsize=12,
+            fontsize=13,
+            color="#f5f5f5",
         )
         plt.axis("off")
-        plt.title("Vocabulary Relationship Graph")
+        plt.title("Vocabulary Relationship Graph", color="#ffffff", fontsize=16, pad=20)
         plt.savefig(OUTPUT_PNG, dpi=300, bbox_inches="tight")
         plt.close()
         return
 
-    # Determine top-3 terms by frequency
     top_terms = set(_get_top_terms(freq, top_k=3))
 
-    # Create graph
     G = nx.Graph()
     center_label = "Generative AI Applications"
-    G.add_node(center_label, size=1600, role="center")
+    center_short = "AI"
 
-    # Add term nodes and edges to center
+    # Add center node
+    G.add_node(center_label, size=2500, role="center", label=center_short)
+
+    # Add terms
     for term, count in used_terms.items():
-        # Base node size, scaled by frequency
-        base_size = 400
-        size = base_size + count * 150
-
+        base_size = 600
+        size = base_size + count * 180
         role = "top" if term in top_terms else "normal"
-        G.add_node(term, size=size, role=role, freq=count)
+        G.add_node(term, size=size, role=role, freq=count, label=term)
         G.add_edge(center_label, term, weight=count)
 
-    # Prepare layout and figure
-    plt.figure(figsize=(14, 10))
+    # --- Layout: radial circle around the center ---
+    num_terms = len(used_terms)
+    radius = 3.0
+
+    pos = {center_label: (0.0, 0.0)}
+    # Place terms evenly on the circle
+    for i, term in enumerate(used_terms.keys()):
+        angle = 2.0 * 3.14159265 * i / max(1, num_terms)
+        x = radius * float(matplotlib.np.cos(angle))
+        y = radius * float(matplotlib.np.sin(angle))
+        pos[term] = (x, y)
+
+    # --- Drawing ---
+    plt.figure(figsize=(14, 9))
     ax = plt.gca()
-    ax.set_facecolor("#0b1020")
+    ax.set_facecolor("#050816")
     plt.axis("off")
 
-    # Spring layout for “organic” look
-    pos = nx.spring_layout(G, seed=42, k=0.8)
-
-    # Build node lists for styling
+    # Collect drawing parameters
     node_sizes = []
     node_colors = []
+    halo_sizes = []
+    halo_colors = []
+
     for node in G.nodes:
         data = G.nodes[node]
-        size = data.get("size", 400)
+        size = data.get("size", 600)
         role = data.get("role", "normal")
 
         node_sizes.append(size)
 
         if role == "center":
-            node_colors.append("#ffcc00")  # central node (warm yellow)
+            node_colors.append("#ffd447")  # warm yellow
+            halo_colors.append("#ffd447")
+            halo_sizes.append(size * 1.8)
         elif role == "top":
-            node_colors.append("#ff6b6b")  # top terms (strong red/pink)
+            node_colors.append("#ff6bb5")  # magenta/pink
+            halo_colors.append("#ff6bb5")
+            halo_sizes.append(size * 1.6)
         else:
-            node_colors.append("#4db8ff")  # normal terms (blue)
+            node_colors.append("#3fd0ff")  # cyan
+            halo_colors.append("#3fd0ff")
+            halo_sizes.append(size * 1.4)
 
-    # Edge widths based on frequency (weight)
+    # Map halos to positions in same order as nodes()
+    node_list = list(G.nodes)
+
+    # Draw "glow" halos first (big transparent circles)
+    for idx, node in enumerate(node_list):
+        x, y = pos[node]
+        plt.scatter(
+            [x],
+            [y],
+            s=halo_sizes[idx],
+            color=halo_colors[idx],
+            alpha=0.16,
+            linewidths=0,
+        )
+
+    # Edge widths based on frequency
     edge_widths = []
     for u, v, data in G.edges(data=True):
         w = data.get("weight", 1)
-        edge_widths.append(0.8 + 0.6 * w)
+        edge_widths.append(1.0 + 0.8 * w)
 
-    # Draw edges first
+    # Draw edges
     nx.draw_networkx_edges(
         G,
         pos,
         width=edge_widths,
-        alpha=0.6,
-        edge_color="#cccccc",
+        alpha=0.7,
+        edge_color="#4ee9ff",
+        style="solid",
     )
 
     # Draw nodes
@@ -230,13 +244,17 @@ def build_graph(freq: Dict[str, int]) -> None:
         pos,
         node_size=node_sizes,
         node_color=node_colors,
-        linewidths=1.0,
         edgecolors="#ffffff",
-        alpha=0.95,
+        linewidths=1.2,
+        alpha=0.98,
     )
 
-    # Draw labels (term text)
-    labels = {n: n for n in G.nodes}
+    # Labels: use "AI" for center, full term for others
+    labels = {}
+    for node in G.nodes:
+        data = G.nodes[node]
+        labels[node] = data.get("label", node)
+
     nx.draw_networkx_labels(
         G,
         pos,
@@ -245,48 +263,45 @@ def build_graph(freq: Dict[str, int]) -> None:
         font_color="#ffffff",
     )
 
-    # Draw frequency labels near term nodes (not on the center)
+    # Frequency labels near term nodes (not for center)
     for node in G.nodes:
         if node == center_label:
             continue
         data = G.nodes[node]
         freq_value = data.get("freq", 0)
         x, y = pos[node]
-        # Slight vertical offset for frequency label
         plt.text(
             x,
-            y - 0.06,
+            y - 0.35,
             f"{freq_value}",
             fontsize=8,
             ha="center",
             va="center",
-            color="#fffb99",
+            color="#fff6a1",
         )
 
-    # Title and legend-like explanation
+    # Title and legend text
     plt.title(
-        "Vocabulary Relationship Graph\n"
-        "Node size and color reflect term frequency. Top-3 terms highlighted.",
-        fontsize=14,
+        "Generative AI Vocabulary — Neon Radial Graph\n"
+        "Node size & edge width reflect frequency. Top-3 terms highlighted.",
+        fontsize=15,
         color="#ffffff",
-        pad=20,
+        pad=22,
     )
 
-    # Optional color bar / legend-like annotation (simple text)
     plt.text(
         0.01,
         0.02,
-        "Center: Generative AI Applications\n"
-        "Red nodes: Top-3 most frequent terms\n"
-        "Blue nodes: Other used terms\n"
+        "Center: Generative AI Applications (AI)\n"
+        "Pink nodes: Top-3 most frequent terms\n"
+        "Cyan nodes: Other used terms\n"
         "Number under each node = frequency in research.md",
         transform=plt.gcf().transFigure,
         fontsize=8,
-        color="#dddddd",
+        color="#d0d0d0",
         va="bottom",
     )
 
-    # Save the output image file
     plt.savefig(OUTPUT_PNG, dpi=300, bbox_inches="tight")
     plt.close()
 
