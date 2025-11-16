@@ -10,6 +10,10 @@ on:
       - 'requirements.txt'
   workflow_dispatch:
 
+# Allow this workflow to push commits using GITHUB_TOKEN
+permissions:
+  contents: write
+
 jobs:
   build-graph:
     runs-on: ubuntu-latest
