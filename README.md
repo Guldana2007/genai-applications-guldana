@@ -33,18 +33,199 @@ The assistant can:
 
 ---
 
-# **Using the Codemie Assistant**
+# Using the Codemie Assistant
 
-1. Open **https://code.mie.dev**  
-2. Select **Open Repository** or **Import from GitHub**  
+This repository is integrated with a custom AI assistant hosted on the EPAM **CodeMie platform**:  
+https://codemie.lab.epam.com/  
+(the enterprise environment for agentic AI tools and repository-aware assistants).
+
+To access the assistant:
+
+1. Open the CodeMie platform:  
+   **https://codemie.lab.epam.com/**
+
+2. Use the option **“Open Repository”** or **“Import from GitHub”**.
+
 3. Provide the repository URL:  
-   **https://github.com/Guldana2007/genai-applications-guldana**  
-4. The assistant will automatically load with the repository context  
-5. Four predefined prompts will appear and can be executed immediately  
+   **https://github.com/Guldana2007/genai-applications-guldana**
 
-This requires no additional configuration from the reviewer.
+4. After the repository loads, the assistant panel will open automatically.
+
+5. All predefined high-level prompts and CI-related commands will become available.
+
+The assistant interacts directly with the repository structure, Python code, markdown content, and GitHub workflows.  
+No additional setup is required from the reviewer.
+
+
+# **System Architecture**
+
+                +------------------------------+
+                |         vocabulary.md        |
+                +------------------------------+
+                            |
+                            v
+                +------------------------------+
+                |          research.md         |
+                +------------------------------+
+                            |
+                            v
+                +------------------------------+
+                |           stats.py           |
+                |------------------------------|
+                | - extract terms              |
+                | - compute frequencies        |
+                | - build usage_stats.json     |
+                | - generate vocab_graph.png   |
+                +------------------------------+
+                            |
+                 +----------+-----------+
+                 |                      |
+                 v                      v
+    +--------------------+    +-----------------------+
+    |  usage_stats.json  |    |    vocab_graph.png    |
+    +--------------------+    +-----------------------+
+                            ^
+                            |
+                +------------------------------+
+                |   generate_vocab_graph.py    |
+                +------------------------------+
+                            ^
+                            |
+                +------------------------------+
+                |  GitHub Actions Workflow     |
+                |   generate_graph.yml         |
+                +------------------------------+
+                            ^
+                            |
+                +------------------------------+
+                |      Codemie Assistant       |
+                +------------------------------+
+
 
 ---
 
-# **System Architecture**
+# **Continuous Integration (CI)**
+
+GitHub Actions workflow:  
+`.github/workflows/generate_graph.yml`
+
+### **Triggered when:**
+- `research.md` is updated  
+- `vocabulary.md` is updated  
+- `stats.py` changes  
+- `requirements.txt` changes  
+- workflow file updates  
+- manual run from the Actions tab  
+- the Codemie assistant triggers the pipeline  
+
+---
+
+# **Project Structure**
+
+- **research.md** — structured analysis of Generative AI applications  
+- **vocabulary.md** — curated list of AI terminology  
+- **stats.py** — extraction, frequency analysis, visualization  
+- **generate_vocab_graph.py** — CI entry point  
+- **vocab_graph.png** — automatically rendered graph  
+- **usage_stats.json** — auto-generated vocabulary frequency data  
+
+---
+
+# **Generated Visualization**
+
+Latest automatically generated graph:
+
+![Vocabulary Graph](./vocab_graph.png)
+
+---
+
+# **Vocabulary Usage Statistics**
+
+| **Term** | **Count** |
+|---------|-----------|
+| generative ai | 3 |
+| generate | 2 |
+| context window | 1 |
+| semantic search | 1 |
+| alignment | 1 |
+| latency | 1 |
+| personalization | 1 |
+| summarization | 1 |
+| classification | 1 |
+| large language model | 0 |
+| foundation model | 0 |
+| embeddings | 0 |
+| tokenization | 0 |
+| prompt engineering | 0 |
+| chain of thought | 0 |
+| few-shot learning | 0 |
+| zero-shot learning | 0 |
+| hallucination | 0 |
+| rag | 0 |
+| vector database | 0 |
+| diffusion model | 0 |
+| fine-tuning | 0 |
+| inference | 0 |
+| gpu acceleration | 0 |
+| multimodal model | 0 |
+| model drift | 0 |
+| knowledge base | 0 |
+| parsing | 0 |
+| grounding | 0 |
+| api endpoint | 0 |
+| safety guardrails | 0 |
+| function calling | 0 |
+| orchestration | 0 |
+| optimization | 0 |
+| evaluate | 0 |
+| monitor | 0 |
+| retrieve | 0 |
+| transform | 0 |
+| validate | 0 |
+
+---
+
+# **Running the Project Locally**
+
+pip install -r requirements.txt
+python stats.py
+
+
+This produces:
+- `usage_stats.json`  
+- `vocab_graph.png`  
+
+---
+
+# **Project Improvement Opportunities**
+
+Several improvements could extend the project’s functionality and visual quality:
+
+- **Interactive visualization**  
+  Converting the static PNG to an interactive graph (D3.js / Plotly) with zooming, filtering, clustering.
+
+- **Automated README updates**  
+  Updating the generated statistics table inside the README automatically during each CI run.
+
+- **Extended NLP features**  
+  Adding lemmatization, phrase detection, and semantic clustering could improve the depth of analysis.
+
+- **External image-generation integration**  
+  A more advanced illustration could be created by integrating with external services such as  
+  *Leonardo.ai*, *Midjourney API*, or *Stability AI*.  
+  These platforms can render highly detailed conceptual diagrams.  
+  However, they are paid platforms, and Codemie currently does not support direct image generation or external API calls.  
+
+  A generated image could look like this:
+
+  **(Insert generated image here once available)**
+
+This would significantly enhance the presentation value of the project.
+
+---
+
+# **Summary**
+
+This project combines structured research, automated term extraction, Python-based analytics, CI-driven visualization, and an integrated AI assistant.  
+It provides a robust, reproducible workflow that aligns academic rigor with modern engineering practices.
 
