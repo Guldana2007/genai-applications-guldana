@@ -6,13 +6,13 @@ This script analyzes the research text and the vocabulary list in order to:
 1. Extract vocabulary terms from `vocabulary.md`
 2. Count how many times each term appears in `research.md`
 3. Save the statistics into `usage_stats.json`
-4. Build a futuristic-looking vocabulary graph in `vocab_graph.png`
+4. Build a vocabulary graph in `vocab_graph.png`
 
 The graph uses:
 - Dark background with a subtle grid
 - Rectangular "cards" instead of circles
-- Neon glow around nodes
-- Soft gradient-like edges
+- Glow around nodes
+- Soft, segmented edges
 - Small light particles in the background
 
 The goal is to make the visualization both informative and visually attractive.
@@ -24,12 +24,12 @@ from pathlib import Path
 from typing import List, Dict
 
 import matplotlib
-import networkx as nx
-import matplotlib.pyplot as plt
-import numpy as np
-
 # Use a non-interactive backend so the script works in CI / GitHub Actions
 matplotlib.use("Agg")
+
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
 
 # Paths to all relevant project files
 RESEARCH_FILE = Path("research.md")
@@ -106,13 +106,13 @@ def _get_top_terms(freq: Dict[str, int], top_k: int = 3) -> List[str]:
 
 
 # ============================================================================
-#   Futuristic vocabulary graph generator (neon style, rectangles, particles)
+#   Futuristic vocabulary graph generator (rectangles, glow, particles)
 # ============================================================================
 
 
 def build_graph(freq: Dict[str, int]) -> None:
     """
-    Build and save a futuristic vocabulary graph.
+    Build and save a vocabulary graph.
 
     Nodes:
         - Center node: "Generative AI Applications"
@@ -121,10 +121,10 @@ def build_graph(freq: Dict[str, int]) -> None:
     Visual style:
         - Dark grid background
         - Rectangular nodes (cards) instead of circles
-        - Neon glow around nodes
-        - Soft "gradient" edges (many semi-transparent segments)
+        - Glow around nodes
+        - Segmented edges to imitate a soft gradient
         - Light particles scattered in the background
-        - Top-3 most frequent terms are highlighted
+        - Top-3 most frequent terms are highlighted in a separate color
 
     Output is saved as `vocab_graph.png`.
     """
@@ -155,14 +155,14 @@ def build_graph(freq: Dict[str, int]) -> None:
 
     # --- Create the graph structure ---
     G = nx.Graph()
-    G.add_node(center_label, role="center", freq=0, size=3000)
+    G.add_node(center_label, role="center", freq=0, size=3200)
 
     for term, count in used_terms.items():
         G.add_node(
             term,
             role="top" if term in top_terms else "normal",
             freq=count,
-            size=1500 + count * 350,
+            size=1800 + count * 400,
         )
         G.add_edge(center_label, term, weight=count)
 
@@ -194,7 +194,7 @@ def build_graph(freq: Dict[str, int]) -> None:
         alpha=0.18,
     )
 
-    # --- Neon-like edges (many semi-transparent segments) ---
+    # --- Segmented edges (imitating a gradient / neon line) ---
     for (u, v, edge_data) in G.edges(data=True):
         x1, y1 = pos[u]
         x2, y2 = pos[v]
@@ -205,7 +205,7 @@ def build_graph(freq: Dict[str, int]) -> None:
         ys = np.linspace(y1, y2, steps)
 
         for i in range(steps - 1):
-            # Alpha grows slightly along the edge, imitating a soft gradient
+            # Alpha grows slightly along the edge
             alpha = (i / steps) ** 1.5
             plt.plot(
                 xs[i : i + 2],
@@ -217,44 +217,43 @@ def build_graph(freq: Dict[str, int]) -> None:
     # --- Draw rectangular nodes with glow ---
     for node, node_data in G.nodes(data=True):
         x, y = pos[node]
-        size = node_data.get("size", 1500)
+        size = node_data.get("size", 1800)
         freq_value = node_data.get("freq", 0)
         role = node_data.get("role", "normal")
 
-        # Convert "size" to rectangle width/height in layout coordinates
-        rect_width = size / 14000.0
-        rect_height = size / 28000.0
+        # Convert "size" to rectangle width/height in layout coordinates.
+        # Denominators are tuned so labels fit comfortably inside.
+        rect_width = size / 8000.0   # wider rectangles
+        rect_height = size / 22000.0  # slightly taller rectangles
 
-        # Color scheme depends on node role
+        # Color scheme depends on node role.
+        # All faces are relatively light so black text is readable.
         if role == "center":
-            face_color = "#ffd75c"
-            glow_color = "#fff7b3"
-            text_color = "black"
+            face_color = "#ffe89c"    # light yellow
+            glow_color = "#fff7c7"
         elif role == "top":
-            face_color = "#ff5c67"
-            glow_color = "#ff9aa6"
-            text_color = "white"
+            face_color = "#ffd1d9"    # light pink
+            glow_color = "#ffe4ea"
         else:
-            face_color = "#2db7ff"
-            glow_color = "#9cdeff"
-            text_color = "white"
+            face_color = "#d6ecff"    # light blue
+            glow_color = "#e6f4ff"
 
         # Outer glow rectangle (first layer)
         outer_glow = plt.Rectangle(
-            (x - rect_width / 2 - 0.01, y - rect_height / 2 - 0.01),
-            rect_width + 0.02,
-            rect_height + 0.02,
+            (x - rect_width / 2 - 0.012, y - rect_height / 2 - 0.012),
+            rect_width + 0.024,
+            rect_height + 0.024,
             facecolor=glow_color,
             edgecolor=None,
-            alpha=0.15,
+            alpha=0.18,
         )
         ax.add_patch(outer_glow)
 
         # Inner glow rectangle (second layer)
         inner_glow = plt.Rectangle(
-            (x - rect_width / 2 - 0.005, y - rect_height / 2 - 0.005),
-            rect_width + 0.01,
-            rect_height + 0.01,
+            (x - rect_width / 2 - 0.006, y - rect_height / 2 - 0.006),
+            rect_width + 0.012,
+            rect_height + 0.012,
             facecolor=glow_color,
             edgecolor=None,
             alpha=0.35,
@@ -269,11 +268,12 @@ def build_graph(freq: Dict[str, int]) -> None:
             facecolor=face_color,
             edgecolor="white",
             linewidth=1.8,
-            alpha=0.95,
+            alpha=0.96,
         )
         ax.add_patch(rect)
 
         # Node label in the center of the rectangle
+        # All labels are black so they stand out on a light face color.
         plt.text(
             x,
             y,
@@ -282,7 +282,7 @@ def build_graph(freq: Dict[str, int]) -> None:
             va="center",
             fontsize=10,
             fontweight="bold",
-            color=text_color,
+            color="black",
         )
 
         # Frequency value displayed slightly below the node (not for the center)
@@ -292,14 +292,14 @@ def build_graph(freq: Dict[str, int]) -> None:
                 y - rect_height * 0.9,
                 f"{freq_value}",
                 fontsize=8,
-                color="#bdeaff",
+                color="#4a6b86",
                 ha="center",
                 va="center",
             )
 
     # Title explaining what the viewer is looking at
     plt.title(
-        "Generative AI Vocabulary — Futuristic Neon Graph",
+        "Generative AI Vocabulary — Futuristic Graph",
         fontsize=20,
         color="white",
         pad=20,
@@ -329,7 +329,7 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    # Build the futuristic graph
+    # Build the graph
     build_graph(freq)
 
 
