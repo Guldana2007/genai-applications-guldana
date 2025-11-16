@@ -1,23 +1,21 @@
 """
 stats.py
 
-This script analyzes the research text and vocabulary list to automatically:
+This script analyzes the research text and the vocabulary list in order to:
 
 1. Extract vocabulary terms from `vocabulary.md`
 2. Count how many times each term appears in `research.md`
-3. Save the results into `usage_stats.json`
-4. Generate a graph visualization (`vocab_graph.png`) that shows
-   relationships between the central theme ("Generative AI Applications")
-   and all vocabulary terms that appear at least once.
+3. Save the statistics into `usage_stats.json`
+4. Build a futuristic-looking vocabulary graph in `vocab_graph.png`
 
-The visual style of the graph is enhanced:
-- Top-3 most frequent terms are highlighted with a special color and larger size
-- All nodes use a force-directed (spring) layout
-- Frequency values are displayed near each node
-- Dark background and bright colors provide a modern “data science” look
+The graph uses:
+- Dark background with a subtle grid
+- Rectangular "cards" instead of circles
+- Neon glow around nodes
+- Soft gradient-like edges
+- Small light particles in the background
 
-This script is intended to be executed both locally and via GitHub Actions.
-It was designed with the help of an AI assistant (GenAI Repository Automator).
+The goal is to make the visualization both informative and visually attractive.
 """
 
 import json
@@ -25,14 +23,13 @@ import re
 from pathlib import Path
 from typing import List, Dict
 
-import networkx as nx
 import matplotlib
-
-# Use non-interactive backend for CI / GitHub Actions
-matplotlib.use("Agg")
-
+import networkx as nx
 import matplotlib.pyplot as plt
+import numpy as np
 
+# Use a non-interactive backend so the script works in CI / GitHub Actions
+matplotlib.use("Agg")
 
 # Paths to all relevant project files
 RESEARCH_FILE = Path("research.md")
@@ -42,26 +39,32 @@ OUTPUT_PNG = Path("vocab_graph.png")
 
 
 def load_text(path: Path) -> str:
-    """Read the content of a text file and return it as a string."""
+    """
+    Read the content of a text file and return it as a single string.
+    """
     return path.read_text(encoding="utf-8")
 
 
 def extract_terms(vocab_md: str) -> List[str]:
     """
-    Extract vocabulary terms from the markdown file.
+    Extract vocabulary terms from the markdown document.
 
-    It finds lines starting with '##', removes numbering (e.g., '1.'),
-    and converts terms to lowercase for consistent matching.
+    Each term is expected to be on a line starting with "##",
+    for example:
 
-    Expected format for each term line: '## 1. Term'.
+        ## 1. Generative AI
+
+    Only the part after the first dot is used as a term,
+    and everything is converted to lowercase for consistent matching.
     """
     terms: List[str] = []
     for line in vocab_md.splitlines():
-        line = line.strip()
-        if line.startswith("##"):
-            term = line.split(".", 1)[-1].strip()
+        stripped = line.strip()
+        if stripped.startswith("##"):
+            # Take the part after the first dot, e.g. "1. Generative AI" -> "Generative AI"
+            term = stripped.split(".", 1)[-1].strip().lower()
             if term:
-                terms.append(term.lower())
+                terms.append(term)
     return terms
 
 
@@ -69,55 +72,70 @@ def count_frequencies(text: str, terms: List[str]) -> Dict[str, int]:
     """
     Count how many times each vocabulary term appears in the research text.
 
-    Matching is case-insensitive, and we use a regex with word boundaries
-    to reduce the chance of partial matches.
+    Matching is case-insensitive. Word boundaries are used to reduce the
+    chance of partial matches (for example, "token" inside "tokenization").
     """
-    freq: Dict[str, int] = {}
+    frequencies: Dict[str, int] = {}
     text_lower = text.lower()
 
     for term in terms:
         if not term:
-            freq[term] = 0
+            frequencies[term] = 0
             continue
 
         pattern = r"\b" + re.escape(term) + r"\b"
         matches = re.findall(pattern, text_lower)
-        freq[term] = len(matches)
+        frequencies[term] = len(matches)
 
-    return freq
+    return frequencies
 
 
 def _get_top_terms(freq: Dict[str, int], top_k: int = 3) -> List[str]:
-    """Return the top_k terms by frequency (descending)."""
-    non_zero_terms = [(t, c) for t, c in freq.items() if c > 0]
-    if not non_zero_terms:
+    """
+    Return a list with the names of the top_k most frequent terms.
+
+    Only terms with a frequency > 0 are considered.
+    """
+    non_zero = [(term, count) for term, count in freq.items() if count > 0]
+    if not non_zero:
         return []
 
-    non_zero_terms.sort(key=lambda x: (-x[1], x[0]))
-    return [t for t, _ in non_zero_terms[:top_k]]
+    # Sort by frequency (descending), then alphabetically for stability
+    non_zero.sort(key=lambda x: (-x[1], x[0]))
+    return [term for term, _ in non_zero[:top_k]]
+
+
+# ============================================================================
+#   Futuristic vocabulary graph generator (neon style, rectangles, particles)
+# ============================================================================
 
 
 def build_graph(freq: Dict[str, int]) -> None:
     """
-    Build and save a relationship graph using NetworkX and Matplotlib.
+    Build and save a futuristic vocabulary graph.
 
     Nodes:
-        - A central node: "Generative AI Applications"
-        - All vocabulary terms with a frequency > 0
+        - Center node: "Generative AI Applications"
+        - One node per vocabulary term that appears at least once in research.md
 
-    Styling:
-        - Dark background
+    Visual style:
+        - Dark grid background
+        - Rectangular nodes (cards) instead of circles
+        - Neon glow around nodes
+        - Soft "gradient" edges (many semi-transparent segments)
+        - Light particles scattered in the background
         - Top-3 most frequent terms are highlighted
-        - Node sizes scale with term frequency
-        - Frequency labels are drawn next to each node
 
-    Output:
-        vocab_graph.png
+    Output is saved as `vocab_graph.png`.
     """
+    # Keep only terms that actually appear in the research text
     used_terms = {term: count for term, count in freq.items() if count > 0}
 
+    # If nothing is used, create a simple message image and stop
     if not used_terms:
-        plt.figure(figsize=(8, 6))
+        plt.figure(figsize=(10, 6))
+        ax = plt.gca()
+        ax.set_facecolor("#030510")
         plt.text(
             0.5,
             0.5,
@@ -125,117 +143,166 @@ def build_graph(freq: Dict[str, int]) -> None:
             ha="center",
             va="center",
             fontsize=12,
+            color="white",
         )
         plt.axis("off")
-        plt.title("Vocabulary Relationship Graph")
         plt.savefig(OUTPUT_PNG, dpi=300, bbox_inches="tight")
         plt.close()
         return
 
+    center_label = "Generative AI Applications"
     top_terms = set(_get_top_terms(freq, top_k=3))
 
+    # --- Create the graph structure ---
     G = nx.Graph()
-    center_label = "Generative AI Applications"
-    G.add_node(center_label, size=1600, role="center")
+    G.add_node(center_label, role="center", freq=0, size=3000)
 
     for term, count in used_terms.items():
-        base_size = 400
-        size = base_size + count * 150
-        role = "top" if term in top_terms else "normal"
-        G.add_node(term, size=size, role=role, freq=count)
+        G.add_node(
+            term,
+            role="top" if term in top_terms else "normal",
+            freq=count,
+            size=1500 + count * 350,
+        )
         G.add_edge(center_label, term, weight=count)
 
-    plt.figure(figsize=(14, 10))
+    # --- Prepare the figure and background ---
+    fig = plt.figure(figsize=(20, 16))
     ax = plt.gca()
-    ax.set_facecolor("#0b1020")
     plt.axis("off")
 
-    # Spring layout (force-directed) for modern look
-    pos = nx.spring_layout(G, seed=42, k=0.8)
+    # Dark background color
+    ax.set_facecolor("#030510")
 
-    node_sizes = []
-    node_colors = []
-    for node in G.nodes:
-        data = G.nodes[node]
-        size = data.get("size", 400)
-        role = data.get("role", "normal")
+    # Subtle grid lines for a "tech" feeling
+    for x in np.linspace(-1, 1, 30):
+        ax.axvline(x, color="#0a1028", linewidth=0.4, alpha=0.35)
+    for y in np.linspace(-1, 1, 30):
+        ax.axhline(y, color="#0a1028", linewidth=0.4, alpha=0.35)
 
-        node_sizes.append(size)
+    # Spring layout gives a natural "network" shape
+    pos = nx.spring_layout(G, seed=42, k=1.2)
 
-        if role == "center":
-            node_colors.append("#ffcc00")  # center
-        elif role == "top":
-            node_colors.append("#ff6b6b")  # top terms
-        else:
-            node_colors.append("#4db8ff")  # others
-
-    edge_widths = []
-    for _, _, data in G.edges(data=True):
-        w = data.get("weight", 1)
-        edge_widths.append(0.8 + 0.6 * w)
-
-    nx.draw_networkx_edges(
-        G,
-        pos,
-        width=edge_widths,
-        alpha=0.6,
-        edge_color="#cccccc",
+    # --- Background light particles (small glowing dots) ---
+    particles_x = np.random.uniform(-1, 1, 140)
+    particles_y = np.random.uniform(-1, 1, 140)
+    plt.scatter(
+        particles_x,
+        particles_y,
+        s=12,
+        color="#3fd0ff",
+        alpha=0.18,
     )
 
-    nx.draw_networkx_nodes(
-        G,
-        pos,
-        node_size=node_sizes,
-        node_color=node_colors,
-        linewidths=1.0,
-        edgecolors="#ffffff",
-        alpha=0.95,
-    )
+    # --- Neon-like edges (many semi-transparent segments) ---
+    for (u, v, edge_data) in G.edges(data=True):
+        x1, y1 = pos[u]
+        x2, y2 = pos[v]
 
-    labels = {n: n for n in G.nodes}
-    nx.draw_networkx_labels(
-        G,
-        pos,
-        labels=labels,
-        font_size=9,
-        font_color="#ffffff",
-    )
+        # Interpolate points between the two nodes
+        steps = 40
+        xs = np.linspace(x1, x2, steps)
+        ys = np.linspace(y1, y2, steps)
 
-    for node in G.nodes:
-        if node == center_label:
-            continue
-        data = G.nodes[node]
-        freq_value = data.get("freq", 0)
+        for i in range(steps - 1):
+            # Alpha grows slightly along the edge, imitating a soft gradient
+            alpha = (i / steps) ** 1.5
+            plt.plot(
+                xs[i : i + 2],
+                ys[i : i + 2],
+                color=(0.2, 0.8, 1.0, 0.15 + alpha * 0.5),
+                linewidth=1.6,
+            )
+
+    # --- Draw rectangular nodes with glow ---
+    for node, node_data in G.nodes(data=True):
         x, y = pos[node]
+        size = node_data.get("size", 1500)
+        freq_value = node_data.get("freq", 0)
+        role = node_data.get("role", "normal")
+
+        # Convert "size" to rectangle width/height in layout coordinates
+        rect_width = size / 14000.0
+        rect_height = size / 28000.0
+
+        # Color scheme depends on node role
+        if role == "center":
+            face_color = "#ffd75c"
+            glow_color = "#fff7b3"
+            text_color = "black"
+        elif role == "top":
+            face_color = "#ff5c67"
+            glow_color = "#ff9aa6"
+            text_color = "white"
+        else:
+            face_color = "#2db7ff"
+            glow_color = "#9cdeff"
+            text_color = "white"
+
+        # Outer glow rectangle (first layer)
+        outer_glow = plt.Rectangle(
+            (x - rect_width / 2 - 0.01, y - rect_height / 2 - 0.01),
+            rect_width + 0.02,
+            rect_height + 0.02,
+            facecolor=glow_color,
+            edgecolor=None,
+            alpha=0.15,
+        )
+        ax.add_patch(outer_glow)
+
+        # Inner glow rectangle (second layer)
+        inner_glow = plt.Rectangle(
+            (x - rect_width / 2 - 0.005, y - rect_height / 2 - 0.005),
+            rect_width + 0.01,
+            rect_height + 0.01,
+            facecolor=glow_color,
+            edgecolor=None,
+            alpha=0.35,
+        )
+        ax.add_patch(inner_glow)
+
+        # Main rectangle for the node itself
+        rect = plt.Rectangle(
+            (x - rect_width / 2, y - rect_height / 2),
+            rect_width,
+            rect_height,
+            facecolor=face_color,
+            edgecolor="white",
+            linewidth=1.8,
+            alpha=0.95,
+        )
+        ax.add_patch(rect)
+
+        # Node label in the center of the rectangle
         plt.text(
             x,
-            y - 0.06,
-            f"{freq_value}",
-            fontsize=8,
+            y,
+            node,
             ha="center",
             va="center",
-            color="#fffb99",
+            fontsize=10,
+            fontweight="bold",
+            color=text_color,
         )
 
-    plt.title(
-        "Vocabulary Relationship Graph\n"
-        "Node size and color reflect term frequency. Top-3 terms highlighted.",
-        fontsize=14,
-        color="#ffffff",
-        pad=20,
-    )
+        # Frequency value displayed slightly below the node (not for the center)
+        if node != center_label:
+            plt.text(
+                x,
+                y - rect_height * 0.9,
+                f"{freq_value}",
+                fontsize=8,
+                color="#bdeaff",
+                ha="center",
+                va="center",
+            )
 
-    plt.text(
-        0.01,
-        0.02,
-        "Center: Generative AI Applications\n"
-        "Red nodes: Top-3 most frequent terms\n"
-        "Blue nodes: Other used terms\n"
-        "Number under each node = frequency in research.md",
-        transform=plt.gcf().transFigure,
-        fontsize=8,
-        color="#dddddd",
-        va="bottom",
+    # Title explaining what the viewer is looking at
+    plt.title(
+        "Generative AI Vocabulary — Futuristic Neon Graph",
+        fontsize=20,
+        color="white",
+        pad=20,
     )
 
     plt.savefig(OUTPUT_PNG, dpi=300, bbox_inches="tight")
@@ -243,18 +310,26 @@ def build_graph(freq: Dict[str, int]) -> None:
 
 
 def main() -> None:
-    """Main execution function."""
+    """
+    Main entry point:
+    - read markdown files
+    - compute frequencies
+    - write JSON statistics
+    - build the visualization graph
+    """
     research_text = load_text(RESEARCH_FILE)
     vocab_text = load_text(VOCAB_FILE)
 
     terms = extract_terms(vocab_text)
     freq = count_frequencies(research_text, terms)
 
+    # Save frequency statistics as pretty-printed JSON
     OUTPUT_JSON.write_text(
         json.dumps(freq, indent=4, ensure_ascii=False),
         encoding="utf-8",
     )
 
+    # Build the futuristic graph
     build_graph(freq)
 
 
